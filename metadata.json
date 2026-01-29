@@ -1,0 +1,7 @@
+{
+  "name": "BuscaNomes - Descubra o Nome Perfeito",
+  "description": "Portal sofisticado de descoberta de nomes de bebês com significados, origens e inteligência artificial.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
