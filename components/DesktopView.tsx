@@ -54,7 +54,7 @@ const DesktopView: React.FC<DesktopViewProps> = ({
                     {alphabet.map((letter) => (
                         <button
                             key={letter}
-                            onClick={() => setSelectedLetter(letter)}
+                            onClick={() => setSelectedLetter(selectedLetter === letter ? null : letter)}
                             className={`flex-shrink-0 w-10 h-10 rounded-lg text-xs font-bold transition-all ${selectedLetter === letter
                                 ? 'bg-slate-900 text-white border-2 border-slate-900 scale-110 shadow-lg'
                                 : letterCounts[letter] > 0
