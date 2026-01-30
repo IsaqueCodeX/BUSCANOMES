@@ -391,9 +391,13 @@ const App: React.FC = () => {
               setSelectedCategory={setSelectedCategory}
               selectedGender={selectedGender}
               setSelectedGender={setSelectedGender}
-              visibleNames={filteredNames}
-              currentCardIndex={currentCardIndex}
-              setCurrentCardIndex={setCurrentCardIndex}
+              selectedLetter={selectedLetter}
+              setSelectedLetter={setSelectedLetter}
+              visibleNames={visibleNames}
+              allFilteredNames={filteredNames}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
               onNameSelect={setSelectedName}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}

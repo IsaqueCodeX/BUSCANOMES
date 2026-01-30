@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BabyName } from '../types';
 import { CATEGORIES } from '../constants';
-import SwipeableNameCards from './SwipeableNameCards';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Heart } from 'lucide-react';
+import { getCountByCategory, getCountByLetter, getCountByGender } from '../utils/nameUtils';
 
 interface MobileViewProps {
     searchTerm: string;
@@ -11,9 +11,13 @@ interface MobileViewProps {
     setSelectedCategory: (category: string | null) => void;
     selectedGender: 'M' | 'F' | 'U' | null;
     setSelectedGender: (gender: 'M' | 'F' | 'U' | null) => void;
+    selectedLetter: string | null;
+    setSelectedLetter: (letter: string | null) => void;
     visibleNames: BabyName[];
-    currentCardIndex: number;
-    setCurrentCardIndex: (index: number) => void;
+    allFilteredNames: BabyName[];
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
     onNameSelect: (name: BabyName) => void;
     favorites: string[];
     onToggleFavorite: (id: string) => void;
@@ -28,26 +32,20 @@ const MobileView: React.FC<MobileViewProps> = ({
     setSelectedCategory,
     selectedGender,
     setSelectedGender,
+    selectedLetter,
+    setSelectedLetter,
     visibleNames,
-    currentCardIndex,
-    setCurrentCardIndex,
+    allFilteredNames,
+    currentPage,
+    totalPages,
+    onPageChange,
     onNameSelect,
     favorites,
     onToggleFavorite,
     isLoadingAI,
     totalCount,
 }) => {
-    const goToPrevious = () => {
-        if (currentCardIndex > 0) {
-            setCurrentCardIndex(currentCardIndex - 1);
-        }
-    };
-
-    const goToNext = () => {
-        if (currentCardIndex < visibleNames.length - 1) {
-            setCurrentCardIndex(currentCardIndex + 1);
-        }
-    };
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
     const [isSearching, setIsSearching] = React.useState(false);
     const searchInputRef = React.useRef<HTMLInputElement>(null);
@@ -63,8 +61,32 @@ const MobileView: React.FC<MobileViewProps> = ({
         }
     };
 
+    // Calcular contagens para categorias
+    const categoryCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        CATEGORIES.forEach(cat => {
+            counts[cat.id] = getCountByCategory(allFilteredNames, cat.id);
+        });
+        return counts;
+    }, [allFilteredNames]);
+
+    // Calcular contagens para letras
+    const letterCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        alphabet.forEach(letter => {
+            counts[letter] = getCountByLetter(allFilteredNames, letter);
+        });
+        return counts;
+    }, [allFilteredNames, alphabet]);
+
+    // Calcular contagens para gêneros
+    const genderCounts = useMemo(() => ({
+        M: getCountByGender(allFilteredNames, 'M'),
+        F: getCountByGender(allFilteredNames, 'F'),
+    }), [allFilteredNames]);
+
     return (
-        <div className="lg:hidden space-y-6 pb-24">
+        <div className="lg:hidden space-y-4 pb-24">
             {/* Search Bar - Simple and Clean */}
             <div className="px-4">
                 <div className={`relative transition-all duration-300 ${isSearching ? 'scale-[0.98]' : 'scale-100'}`}>
@@ -85,14 +107,15 @@ const MobileView: React.FC<MobileViewProps> = ({
                 </div>
             </div>
 
-            {/* Gender Filters - Simplified */}
+            {/* Gender Filters - Smaller */}
             <div className="flex items-center gap-2 px-4">
                 <button
                     onClick={() => {
                         setSelectedGender(null);
                         setSelectedCategory(null);
+                        setSelectedLetter(null);
                     }}
-                    className={`px-5 py-2.5 rounded-xl text-xs font-bold border-2 transition-all uppercase tracking-wider ${!selectedGender && !selectedCategory
+                    className={`px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all uppercase tracking-wider min-h-[44px] ${!selectedGender && !selectedCategory && !selectedLetter
                         ? 'bg-slate-900 text-white border-slate-900'
                         : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                         }`}
@@ -102,123 +125,206 @@ const MobileView: React.FC<MobileViewProps> = ({
 
                 <button
                     onClick={() => setSelectedGender('M')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'M'
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all min-h-[44px] ${selectedGender === 'M'
                         ? 'bg-blue-50 border-blue-500'
                         : 'bg-white border-slate-200 hover:border-blue-300'
                         }`}
                 >
-                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
+                    <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
                         <img src="/assets/boy.png" alt="Menino" className="w-full h-full object-cover" />
                     </div>
                     <span className={`text-xs font-bold uppercase ${selectedGender === 'M' ? 'text-blue-600' : 'text-slate-500'}`}>
                         Menino
                     </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${selectedGender === 'M' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                        {genderCounts.M}
+                    </span>
                 </button>
 
                 <button
                     onClick={() => setSelectedGender('F')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'F'
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all min-h-[44px] ${selectedGender === 'F'
                         ? 'bg-rose-50 border-rose-500'
                         : 'bg-white border-slate-200 hover:border-rose-300'
                         }`}
                 >
-                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
+                    <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
                         <img src="/assets/girl.png" alt="Menina" className="w-full h-full object-cover" />
                     </div>
                     <span className={`text-xs font-bold uppercase ${selectedGender === 'F' ? 'text-rose-600' : 'text-slate-500'}`}>
                         Menina
                     </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${selectedGender === 'F' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
+                        {genderCounts.F}
+                    </span>
                 </button>
             </div>
 
-            {/* Categories - Horizontal Scroll */}
+            {/* Letter Filter - New */}
+            <div className="px-4">
+                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-2">
+                    {alphabet.map((letter) => (
+                        <button
+                            key={letter}
+                            onClick={() => setSelectedLetter(selectedLetter === letter ? null : letter)}
+                            className={`flex-shrink-0 w-9 h-9 rounded-lg text-xs font-bold transition-all ${selectedLetter === letter
+                                ? 'bg-slate-900 text-white border-2 border-slate-900 scale-110'
+                                : letterCounts[letter] > 0
+                                    ? 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300'
+                                    : 'bg-slate-50 text-slate-300 border-2 border-slate-100 cursor-not-allowed opacity-50'
+                                }`}
+                            disabled={letterCounts[letter] === 0}
+                        >
+                            {letter}
+                            {letterCounts[letter] > 0 && (
+                                <div className={`text-[8px] font-bold ${selectedLetter === letter ? 'text-orange-300' : 'text-slate-400'}`}>
+                                    {letterCounts[letter]}
+                                </div>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Categories - Thinner */}
             <div className="px-4">
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
                     {CATEGORIES.map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border-2 transition-all whitespace-nowrap uppercase ${selectedCategory === cat.id
+                            className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold border-2 transition-all whitespace-nowrap uppercase ${selectedCategory === cat.id
                                 ? 'bg-slate-900 text-white border-slate-900'
                                 : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                                 }`}
                         >
                             <span
-                                className="w-2.5 h-2.5 rounded-full"
+                                className="w-2 h-2 rounded-full"
                                 style={{ backgroundColor: cat.color }}
                             />
                             {cat.label}
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                                {categoryCounts[cat.id]}
+                            </span>
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Card Area - Gamified Navigation */}
+            {/* 3-Card Stacked Display */}
             {visibleNames.length > 0 ? (
                 <>
-                    <div className="relative px-4">
-                        {/* Left Arrow */}
-                        <button
-                            onClick={goToPrevious}
-                            disabled={currentCardIndex === 0}
-                            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 z-20 w-11 h-11 rounded-full transition-all shadow-lg ${currentCardIndex === 0
-                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                                : 'bg-white text-slate-700 hover:bg-slate-50 active:scale-95'
-                                }`}
-                        >
-                            <ChevronLeft className="w-6 h-6 mx-auto" />
-                        </button>
+                    <div className="px-4 space-y-4">
+                        {visibleNames.map((name) => (
+                            <div
+                                key={name.id}
+                                className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-sm hover:shadow-md transition-all"
+                            >
+                                {/* Card Header */}
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                                ✨ Origem
+                                            </span>
+                                            <span
+                                                className="w-2 h-2 rounded-full"
+                                                style={{ backgroundColor: CATEGORIES.find(c => c.id === name.category)?.color || '#ccc' }}
+                                            />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">
+                                            {name.origin}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onToggleFavorite(name.id);
+                                        }}
+                                        className="p-2 rounded-full hover:bg-slate-50 transition-colors"
+                                    >
+                                        <Heart
+                                            size={20}
+                                            className={`transition-colors ${favorites.includes(name.id)
+                                                ? 'text-rose-500 fill-rose-500'
+                                                : 'text-slate-300 hover:text-rose-400'
+                                                }`}
+                                        />
+                                    </button>
+                                </div>
 
-                        {/* Card */}
-                        <SwipeableNameCards
-                            names={visibleNames}
-                            currentIndex={currentCardIndex}
-                            onIndexChange={setCurrentCardIndex}
-                            onNameSelect={onNameSelect}
-                            favorites={favorites}
-                            onToggleFavorite={onToggleFavorite}
-                        />
+                                {/* Name */}
+                                <h3 className="text-3xl font-black text-slate-900 mb-2">
+                                    {name.name}
+                                </h3>
 
-                        {/* Right Arrow */}
-                        <button
-                            onClick={goToNext}
-                            disabled={currentCardIndex === visibleNames.length - 1}
-                            className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 z-20 w-11 h-11 rounded-full transition-all shadow-lg ${currentCardIndex === visibleNames.length - 1
-                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                                : 'bg-white text-slate-700 hover:bg-slate-50 active:scale-95'
-                                }`}
-                        >
-                            <ChevronRight className="w-6 h-6 mx-auto" />
-                        </button>
+                                {/* Gender Badge */}
+                                <div className="mb-4">
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${name.gender === 'M'
+                                        ? 'bg-blue-100 text-blue-600'
+                                        : name.gender === 'F'
+                                            ? 'bg-rose-100 text-rose-600'
+                                            : 'bg-purple-100 text-purple-600'
+                                        }`}>
+                                        {name.gender === 'M' ? 'Menino' : name.gender === 'F' ? 'Menina' : 'Unissex'}
+                                    </span>
+                                </div>
+
+                                {/* Meaning */}
+                                <div className="bg-blue-50 rounded-xl p-4 mb-3">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
+                                        ⚡ Significado
+                                    </p>
+                                    <p className="text-sm text-slate-700 font-medium italic">
+                                        "{name.meaning}"
+                                    </p>
+                                </div>
+
+                                {/* Curiosity */}
+                                <div className="mb-4">
+                                    <p className="text-xs text-slate-600 leading-relaxed">
+                                        {name.curiosity}
+                                    </p>
+                                </div>
+
+                                {/* Discover More Button */}
+                                <button
+                                    onClick={() => onNameSelect(name)}
+                                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl text-sm font-bold hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm active:scale-98"
+                                >
+                                    DESCOBRIR MAIS
+                                </button>
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Progress Indicator - Clean */}
-                    <div className="flex items-center justify-center gap-3 px-4">
-                        <div className="flex items-center gap-1.5">
-                            {visibleNames.slice(0, Math.min(5, visibleNames.length)).map((_, idx) => {
-                                const actualIndex =
-                                    currentCardIndex < 2
-                                        ? idx
-                                        : currentCardIndex > visibleNames.length - 3
-                                            ? visibleNames.length - 5 + idx
-                                            : currentCardIndex - 2 + idx;
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between px-4 py-4">
+                        <button
+                            onClick={() => onPageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${currentPage === 1
+                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                                : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-slate-300 active:scale-95'
+                                }`}
+                        >
+                            Anterior
+                        </button>
 
-                                if (actualIndex < 0 || actualIndex >= visibleNames.length) return null;
-
-                                return (
-                                    <div
-                                        key={actualIndex}
-                                        className={`h-1.5 rounded-full transition-all ${actualIndex === currentCardIndex
-                                            ? 'w-8 bg-gradient-to-r from-orange-400 to-orange-600'
-                                            : 'w-1.5 bg-slate-300'
-                                            }`}
-                                    />
-                                );
-                            })}
-                        </div>
-                        <span className="text-slate-700 font-bold text-sm px-3 py-1.5 bg-slate-100 rounded-full">
-                            {currentCardIndex + 1}/{totalCount}
+                        <span className="text-slate-700 font-bold text-sm px-3 py-2 bg-slate-100 rounded-full">
+                            Página {currentPage} de {totalPages}
                         </span>
+
+                        <button
+                            onClick={() => onPageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${currentPage === totalPages
+                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                                : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-slate-300 active:scale-95'
+                                }`}
+                        >
+                            Próxima
+                        </button>
                     </div>
                 </>
             ) : (
