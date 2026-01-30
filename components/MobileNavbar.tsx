@@ -10,12 +10,12 @@ interface MobileNavbarProps {
 
 const MobileNavbar: React.FC<MobileNavbarProps> = ({ view, setView, onSearchClick }) => {
     return (
-        <div className="lg:hidden fixed bottom-4 left-4 right-4 z-[70]">
-            <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl px-6 py-4 flex items-center justify-between">
+        <div className="lg:hidden fixed bottom-6 left-4 right-4 z-[70]">
+            <div className="bg-slate-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl px-6 py-4 flex items-center justify-between">
 
                 <button
                     onClick={() => setView('browse')}
-                    className={`flex flex-col items-center gap-1 transition-all ${view === 'browse' ? 'text-amber-500 scale-110' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`flex flex-col items-center gap-1 transition-all min-w-[48px] min-h-[48px] justify-center ${view === 'browse' ? 'text-amber-500 scale-110' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                     <Home size={24} strokeWidth={view === 'browse' ? 2.5 : 2} />
                     <span className="text-[10px] font-bold uppercase tracking-wider">Início</span>
@@ -23,7 +23,7 @@ const MobileNavbar: React.FC<MobileNavbarProps> = ({ view, setView, onSearchClic
 
                 <button
                     onClick={onSearchClick}
-                    className="flex flex-col items-center gap-1 transition-all text-slate-500 hover:text-slate-300"
+                    className="flex flex-col items-center gap-1 transition-all text-slate-500 hover:text-slate-300 min-w-[48px] min-h-[48px] justify-center"
                 >
                     <Search size={24} strokeWidth={2} />
                     <span className="text-[10px] font-bold uppercase tracking-wider">Buscar</span>
@@ -42,7 +42,7 @@ const MobileNavbar: React.FC<MobileNavbarProps> = ({ view, setView, onSearchClic
 
                 <button
                     onClick={() => setView('favorites')}
-                    className={`flex flex-col items-center gap-1 transition-all ${view === 'favorites' ? 'text-rose-500 scale-110' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`flex flex-col items-center gap-1 transition-all min-w-[48px] min-h-[48px] justify-center ${view === 'favorites' ? 'text-rose-500 scale-110' : 'text-slate-500 hover:text-slate-300'}`}
                 >
                     <Heart size={24} strokeWidth={view === 'favorites' ? 2.5 : 2} fill={view === 'favorites' ? "currentColor" : "none"} />
                     <span className="text-[10px] font-bold uppercase tracking-wider">Salvos</span>

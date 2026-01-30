@@ -3,17 +3,18 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { BabyName } from './types';
 import { CATEGORIES } from './constants';
 import { fetchNames } from './services/dataService';
-import AnimatedBackground from './components/AnimatedBackground';
 import NameCard from './components/NameCard';
 import NameDetailsModal from './components/NameDetailsModal';
 import AiWizard from './components/AiWizard';
 import MobileNavbar from './components/MobileNavbar';
 import SEOHead from './components/SEOHead';
 import SwipeableNameCards from './components/SwipeableNameCards';
+import MobileView from './components/MobileView';
+import DesktopView from './components/DesktopView';
 import { getGeminiInsights } from './services/geminiService';
-import { Search, Sparkles, AlertCircle, Heart } from 'lucide-react';
+import { Search, Sparkles, Heart } from 'lucide-react';
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 3;
 
 const App: React.FC = () => {
   const [names, setNames] = useState<BabyName[]>([]);
@@ -198,21 +199,25 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-32 lg:pb-12 bg-slate-50 text-slate-900 font-sans selection:bg-brand-gradient selection:text-white">
+    <div className="min-h-screen pb-40 lg:pb-12 bg-slate-50 text-slate-900 font-sans selection:bg-brand-gradient selection:text-white">
       <SEOHead title={selectedName ? `${selectedName.name} - Significado` : undefined} />
 
       {/* Background decoration */}
-      {/* Video Background */}
+      {/* Video Background - Optimized for mobile */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="absolute w-full h-full object-cover opacity-100"
+          preload="metadata"
+          poster="/assets/sky-poster.jpg"
+          className="absolute w-full h-full object-cover opacity-100 lg:opacity-100"
         >
           <source src="/assets/sky.mp4" type="video/mp4" />
         </video>
+        {/* Fallback gradient for devices that don't support video */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-white opacity-0" />
       </div>
 
       {selectedName && (
@@ -262,26 +267,97 @@ const App: React.FC = () => {
 
       <main className="max-w-[1600px] mx-auto pt-8 px-4 md:px-6 relative z-10">
 
-        {/* VISUALIZAÇÃO: NAVEGAÇÃO */}
-        {view === 'browse' || view === 'favorites' ? (
+        {/* BROWSE & FAVORITES VIEW */}
+        {(view === 'browse' || view === 'favorites') && (
           <>
-            {/* SEÇÃO HERO */}
-            <div className={`text-center mb-12 max-w-4xl mx-auto animate-fade-in ${view === 'favorites' ? 'bg-dark-gradient rounded-[3rem] p-12 shadow-2xl relative overflow-hidden' : ''}`}>
+            {/* Desktop Filters - Transparent */}
+            <div className="hidden lg:block py-4 mb-8">
+              <div className="max-w-7xl mx-auto">
+                <div className="max-w-7xl mx-auto">
+                  {/* Gender Filters */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <button
+                      onClick={() => { setSelectedGender(null); setSelectedCategory(null); }}
+                      className={`px-5 py-2.5 rounded-xl text-[11px] font-bold border transition-all uppercase tracking-wider whitespace-nowrap min-h-[44px] ${!selectedGender && !selectedCategory ? 'bg-dark-gradient text-white border-black' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'}`}
+                    >
+                      Todos
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedGender('M')}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all min-h-[44px] ${selectedGender === 'M' ? 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/20' : 'bg-white border-slate-200 hover:border-blue-300'}`}
+                    >
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
+                        <img src="/assets/boy.png" alt="Menino" className="w-full h-full object-cover" />
+                      </div>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'M' ? 'text-blue-600' : 'text-slate-500'}`}>Menino</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedGender('F')}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all min-h-[44px] ${selectedGender === 'F' ? 'bg-rose-50 border-rose-500 shadow-lg shadow-rose-500/20' : 'bg-white border-slate-200 hover:border-rose-300'}`}
+                    >
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
+                        <img src="/assets/girl.png" alt="Menina" className="w-full h-full object-cover" />
+                      </div>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'F' ? 'text-rose-600' : 'text-slate-500'}`}>Menina</span>
+                    </button>
+                  </div>
+
+                  {/* Category Carousel - Manual Navigation */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => document.getElementById('cat-scroll')?.scrollBy({ left: -300, behavior: 'smooth' })}
+                      className="flex w-10 h-10 items-center justify-center rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm flex-shrink-0 transition-all active:scale-95"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+
+                    <div id="cat-scroll" className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 scroll-smooth w-full">
+                      {CATEGORIES.map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                          className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-[11px] font-bold border-2 transition-all whitespace-nowrap uppercase tracking-wider min-h-[44px]
+                          ${selectedCategory === cat.id ? 'bg-dark-gradient text-white border-white/20 shadow-xl scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
+                        >
+                          <span
+                            className="w-3 h-3 rounded-full shadow-sm flex-shrink-0"
+                            style={{ backgroundColor: cat.color }}
+                          />
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => document.getElementById('cat-scroll')?.scrollBy({ left: 300, behavior: 'smooth' })}
+                      className="flex w-10 h-10 items-center justify-center rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm flex-shrink-0 transition-all active:scale-95"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO HERO - Desktop Only (now below filters) */}
+            <div className={`hidden lg:block text-center mb-12 max-w-4xl mx-auto animate-fade-in ${view === 'favorites' ? 'bg-white/30 backdrop-blur-xl rounded-[3rem] p-12 shadow-2xl relative overflow-hidden border border-white/40' : ''}`}>
               {view === 'favorites' && (
                 <>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-gradient opacity-10 rounded-full blur-3xl"></div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-slate-500/10 rounded-full blur-3xl"></div>
                 </>
               )}
 
               <div className="relative z-10">
-                <h2 className={`text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-tight ${view === 'favorites' ? 'text-white' : 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'}`}>
+                <h2 className={`text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-tight ${view === 'favorites' ? 'text-slate-900' : 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'}`}>
                   {view === 'favorites' ? (
                     <>
-                      Seus nomes <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-rose-600">favoritos.</span>
+                      Seus nomes <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-600">favoritos.</span>
                       <div className="mt-4 flex items-center justify-center gap-2">
-                        <Heart size={24} className="text-rose-400 fill-rose-400 animate-pulse" />
-                        <span className="text-2xl font-bold text-slate-300">{favorites.length} {favorites.length === 1 ? 'nome salvo' : 'nomes salvos'}</span>
+                        <Heart size={24} className="text-orange-500 fill-orange-500 animate-pulse" />
+                        <span className="text-2xl font-bold text-slate-700">{favorites.length} {favorites.length === 1 ? 'nome salvo' : 'nomes salvos'}</span>
                       </div>
                     </>
                   ) : (
@@ -308,235 +384,42 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* FILTROS */}
-            {view === 'browse' && (
-              <div className="sticky top-[73px] z-50 py-2 lg:py-4 mb-4 lg:mb-8 -mx-4 px-4 md:-mx-6 md:px-6 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/50">
-                <div className="max-w-7xl mx-auto">
-                  {/* Gender Filters - Always Visible */}
-                  <div className="flex items-center gap-2 mb-2 lg:mb-4">
-                    <button
-                      onClick={() => { setSelectedGender(null); setSelectedCategory(null); }}
-                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl text-[10px] lg:text-[11px] font-bold border transition-all uppercase tracking-wider whitespace-nowrap ${!selectedGender && !selectedCategory ? 'bg-dark-gradient text-white border-black' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'}`}
-                    >
-                      Todos
-                    </button>
+            <MobileView
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedGender={selectedGender}
+              setSelectedGender={setSelectedGender}
+              visibleNames={filteredNames}
+              currentCardIndex={currentCardIndex}
+              setCurrentCardIndex={setCurrentCardIndex}
+              onNameSelect={setSelectedName}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+              isLoadingAI={isLoadingAI}
+              totalCount={filteredNames.length}
+            />
 
-                    <button
-                      onClick={() => setSelectedGender('M')}
-                      className={`flex items-center gap-1.5 lg:gap-2 px-2 lg:px-4 py-2 lg:py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'M' ? 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/20' : 'bg-white border-slate-200 hover:border-blue-300'}`}
-                    >
-                      <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
-                        <img src="/assets/boy.png" alt="Menino" className="w-full h-full object-cover" />
-                      </div>
-                      <span className={`text-[10px] lg:text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'M' ? 'text-blue-600' : 'text-slate-500'}`}>Menino</span>
-                    </button>
-
-                    <button
-                      onClick={() => setSelectedGender('F')}
-                      className={`flex items-center gap-1.5 lg:gap-2 px-2 lg:px-4 py-2 lg:py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'F' ? 'bg-rose-50 border-rose-500 shadow-lg shadow-rose-500/20' : 'bg-white border-slate-200 hover:border-rose-300'}`}
-                    >
-                      <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
-                        <img src="/assets/girl.png" alt="Menina" className="w-full h-full object-cover" />
-                      </div>
-                      <span className={`text-[10px] lg:text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'F' ? 'text-rose-600' : 'text-slate-500'}`}>Menina</span>
-                    </button>
-                  </div>
-
-                  {/* Category Carousel */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => document.getElementById('cat-scroll')?.scrollBy({ left: -300, behavior: 'smooth' })}
-                      className="hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm flex-shrink-0 transition-all active:scale-95"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-
-                    <div id="cat-scroll" className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 lg:pb-2 scroll-smooth w-full">
-                      {CATEGORIES.map(cat => (
-                        <button
-                          key={cat.id}
-                          onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                          className={`flex items-center gap-2 lg:gap-2.5 px-3 lg:px-5 py-2 lg:py-3 rounded-full md:rounded-2xl text-[10px] lg:text-[11px] font-bold border-2 transition-all whitespace-nowrap uppercase tracking-wider
-                            ${selectedCategory === cat.id ? 'bg-dark-gradient text-white border-white/20 shadow-xl scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
-                        >
-                          <span
-                            className="w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full shadow-sm flex-shrink-0"
-                            style={{ backgroundColor: cat.color }}
-                          />
-                          {cat.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => document.getElementById('cat-scroll')?.scrollBy({ left: 300, behavior: 'smooth' })}
-                      className="hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 shadow-sm flex-shrink-0 transition-all active:scale-95"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* CONTENT GRID */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 max-w-7xl mx-auto">
-              <div className="space-y-8">
-
-                {/* FEATURED CARD (Mobile Only) */}
-                {nameOfTheDay && !isLoadingData && (
-                  <div className="lg:hidden bg-dark-gradient text-white rounded-[2rem] p-6 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Sparkles size={100} /></div>
-                    <div className="relative z-10">
-                      <span className="bg-brand-gradient text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4 inline-block text-white">Destaque</span>
-                      <h3 className="text-3xl font-black mb-2">{nameOfTheDay.name}</h3>
-                      <p className="text-slate-400 text-sm mb-6 line-clamp-2">{nameOfTheDay.meaning}</p>
-                      <button onClick={() => setSelectedName(nameOfTheDay)} className="w-full py-3 bg-white text-black text-xs font-black uppercase tracking-wider rounded-xl">Detalhes</button>
-                    </div>
-                  </div>
-                )}
-
-                {isLoadingData ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="h-64 bg-white rounded-[2rem] animate-pulse border border-slate-200"></div>
-                    ))}
-                  </div>
-                ) : filteredNames.length > 0 ? (
-                  <>
-                    {/* Mobile: Swipeable Cards */}
-                    <div className="lg:hidden">
-                      <SwipeableNameCards
-                        names={visibleNames}
-                        currentIndex={currentCardIndex}
-                        onIndexChange={setCurrentCardIndex}
-                        onNameSelect={setSelectedName}
-                        favorites={favorites}
-                        onToggleFavorite={toggleFavorite}
-                      />
-                    </div>
-
-                    {/* Desktop: Grid */}
-                    <div className="hidden lg:grid grid-cols-2 gap-6">
-                      {visibleNames.map(n => (
-                        <div key={n.id} className="flex justify-center">
-                          <NameCard
-                            data={n}
-                            onSelect={(data) => setSelectedName(data)}
-                            isFavorite={favorites.includes(n.id)}
-                            onToggleFavorite={(e) => { e.stopPropagation(); toggleFavorite(n.id); }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-
-                    {totalPages > 1 && (
-                      <div className="hidden lg:flex justify-center items-center gap-4 pt-12 pb-8">
-                        <button
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                          className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                        >
-                          Anterior
-                        </button>
-
-                        <span className="text-sm font-bold text-slate-500 bg-white/50 px-4 py-2 rounded-xl border border-white/20">
-                          Página {currentPage} de {totalPages}
-                        </span>
-
-                        <button
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                          className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                        >
-                          Próxima
-                        </button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="py-20">
-                    {view === 'favorites' ? (
-                      // EMPTY FAVORITES STATE
-                      <div className="max-w-2xl mx-auto">
-                        <div className="bg-dark-gradient text-white rounded-[3rem] p-12 text-center shadow-2xl relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-gradient opacity-10 rounded-full blur-3xl"></div>
-                          <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-500/20 rounded-full blur-3xl"></div>
-
-                          <div className="relative z-10">
-                            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-rose-500/20 to-rose-600/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-rose-500/20">
-                              <Heart size={48} className="text-rose-400" />
-                            </div>
-
-                            <h3 className="text-3xl font-black mb-3 tracking-tight">Nenhum favorito ainda</h3>
-                            <p className="text-slate-300 text-sm mb-8 leading-relaxed max-w-md mx-auto">
-                              Explore nossa coleção de nomes e adicione seus favoritos clicando no ícone de coração. ❤️
-                            </p>
-
-                            <button
-                              onClick={() => { setView('browse'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                              className="px-8 py-4 bg-white text-slate-900 rounded-xl font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-lg inline-flex items-center gap-2"
-                            >
-                              <Search size={18} />
-                              Explorar Nomes
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // EMPTY SEARCH RESULTS
-                      <div className="bg-white rounded-[2rem] border border-slate-200 p-12 text-center shadow-lg">
-                        <div className="w-20 h-20 mx-auto mb-6 bg-slate-100 rounded-full flex items-center justify-center">
-                          <AlertCircle size={48} className="text-slate-300" />
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-900 mb-2">Nenhum nome encontrado</h3>
-                        <p className="text-slate-500 text-sm mb-6">Tente ajustar seus filtros ou busca.</p>
-                        <button
-                          onClick={() => { setSearchTerm(''); setSelectedCategory(null); setSelectedGender(null); setSelectedLetter(null); }}
-                          className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
-                        >
-                          Limpar Filtros
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* BARRA LATERAL (Desktop) */}
-              <aside className="hidden lg:block relative">
-                <div className="sticky top-40 space-y-6">
-                  {nameOfTheDay && !isLoadingData && (
-                    <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-xl shadow-[#fc4a1a]/5 group hover=-translate-y-1 transition-all duration-500">
-                      <div className="flex items-center justify-between mb-6">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#fc4a1a] flex items-center gap-2">
-                          <Sparkles size={12} /> Destaque do Dia
-                        </span>
-                      </div>
-                      <div className="text-center mb-6">
-                        <h3 className="text-4xl font-black text-slate-900 mb-2 group-hover:text-brand-gradient transition-colors">{nameOfTheDay.name}</h3>
-                        <p className="text-xs text-slate-500 font-medium italic">"{nameOfTheDay.meaning}"</p>
-                      </div>
-                      <button onClick={() => setSelectedName(nameOfTheDay)} className="w-full py-3 bg-dark-gradient text-white rounded-xl text-xs font-black uppercase tracking-wider hover-bg-brand-gradient transition-colors">
-                        Ver Detalhes
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="bg-dark-gradient rounded-[2rem] p-6 text-center text-white shadow-2xl">
-                    <h4 className="font-black text-xl mb-2">Base de Dados</h4>
-                    <p className="text-slate-400 text-xs mb-6">Total de nomes catalogados</p>
-                    <div className="text-4xl font-black text-brand-gradient mb-2">{names.length}</div>
-                    <div className="h-1 w-12 bg-white/20 mx-auto rounded-full"></div>
-                  </div>
-                </div>
-              </aside>
-            </div>
+            <DesktopView
+              names={visibleNames}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+              onSelectName={setSelectedName}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              nameOfTheDay={nameOfTheDay}
+              isLoadingData={isLoadingData}
+              totalCount={names.length}
+            />
           </>
-        ) : (
-          // VISUALIZAÇÃO DO GERADOR
-          <div className="max-w-2xl mx-auto py-12 text-center min-h-[60vh] flex flex-col justify-center animate-fade-in">
-            <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-200 relative overflow-hidden">
+        )}
+
+        {/* GENERATOR VIEW */}
+        {view === 'generator' && (
+          <div className="max-w-2xl mx-auto py-12 px-4 text-center min-h-[60vh] flex flex-col justify-center animate-fade-in">
+            <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-200 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-brand-gradient"></div>
               <h2 className="text-4xl font-black text-slate-900 mb-8 tracking-tight">Gerador Aleatório</h2>
 
@@ -573,7 +456,7 @@ const App: React.FC = () => {
               <button
                 onClick={generateRandomName}
                 disabled={isLoadingAI}
-                className="w-full py-5 bg-dark-gradient text-white rounded-2xl text-sm font-black hover-bg-brand-gradient transition-all shadow-lg active:scale-95 uppercase tracking-widest"
+                className="w-full py-5 bg-dark-gradient text-white rounded-2xl text-sm font-black hover:bg-brand-gradient transition-all shadow-lg active:scale-95 uppercase tracking-widest"
               >
                 Sortear Novo Nome
               </button>
