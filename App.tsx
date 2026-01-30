@@ -14,7 +14,7 @@ import DesktopView from './components/DesktopView';
 import { getGeminiInsights } from './services/geminiService';
 import { Search, Sparkles, Heart } from 'lucide-react';
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 4;
 
 const App: React.FC = () => {
   const [names, setNames] = useState<BabyName[]>([]);

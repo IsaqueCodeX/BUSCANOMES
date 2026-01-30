@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home, Sparkles, Heart, Search } from 'lucide-react';
 
 interface MobileNavbarProps {
@@ -9,8 +9,38 @@ interface MobileNavbarProps {
 }
 
 const MobileNavbar: React.FC<MobileNavbarProps> = ({ view, setView, onSearchClick }) => {
+    const [isVisible, setIsVisible] = useState(false); // Start hidden
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            // Mostrar quando próximo do final (últimos 200px) ou no topo
+            const nearBottom = currentScrollY + windowHeight >= documentHeight - 200;
+            const nearTop = currentScrollY < 100;
+
+            // Esconder quando rolando para baixo no meio da página
+            const scrollingDown = currentScrollY > lastScrollY;
+            const inMiddle = !nearTop && !nearBottom;
+
+            if (nearBottom || nearTop) {
+                setIsVisible(true);
+            } else if (scrollingDown && inMiddle) {
+                setIsVisible(false);
+            }
+
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
+
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[70]">
+        <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-[70] transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
             <div className="bg-slate-900/98 backdrop-blur-2xl border-t border-white/10 shadow-2xl px-4 py-2 flex items-center justify-between" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
 
                 <button

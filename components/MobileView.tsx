@@ -86,7 +86,7 @@ const MobileView: React.FC<MobileViewProps> = ({
     }), [allFilteredNames]);
 
     return (
-        <div className="lg:hidden space-y-4 pb-24">
+        <div className="lg:hidden space-y-3 pb-24">
             {/* Search Bar - Simple and Clean */}
             <div className="px-4">
                 <div className={`relative transition-all duration-300 ${isSearching ? 'scale-[0.98]' : 'scale-100'}`}>
@@ -125,36 +125,30 @@ const MobileView: React.FC<MobileViewProps> = ({
 
                 <button
                     onClick={() => setSelectedGender('M')}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all min-h-[44px] ${selectedGender === 'M'
+                    className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl border-2 transition-all min-h-[44px] min-w-[44px] ${selectedGender === 'M'
                         ? 'bg-blue-50 border-blue-500'
                         : 'bg-white border-slate-200 hover:border-blue-300'
                         }`}
                 >
-                    <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
                         <img src="/assets/boy.png" alt="Menino" className="w-full h-full object-cover" />
                     </div>
-                    <span className={`text-xs font-bold uppercase ${selectedGender === 'M' ? 'text-blue-600' : 'text-slate-500'}`}>
-                        Menino
-                    </span>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${selectedGender === 'M' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${selectedGender === 'M' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
                         {genderCounts.M}
                     </span>
                 </button>
 
                 <button
                     onClick={() => setSelectedGender('F')}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 transition-all min-h-[44px] ${selectedGender === 'F'
+                    className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl border-2 transition-all min-h-[44px] min-w-[44px] ${selectedGender === 'F'
                         ? 'bg-rose-50 border-rose-500'
                         : 'bg-white border-slate-200 hover:border-rose-300'
                         }`}
                 >
-                    <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
                         <img src="/assets/girl.png" alt="Menina" className="w-full h-full object-cover" />
                     </div>
-                    <span className={`text-xs font-bold uppercase ${selectedGender === 'F' ? 'text-rose-600' : 'text-slate-500'}`}>
-                        Menina
-                    </span>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${selectedGender === 'F' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${selectedGender === 'F' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>
                         {genderCounts.F}
                     </span>
                 </button>
@@ -193,17 +187,17 @@ const MobileView: React.FC<MobileViewProps> = ({
                         <button
                             key={cat.id}
                             onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold border-2 transition-all whitespace-nowrap uppercase ${selectedCategory === cat.id
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold border-2 transition-all whitespace-nowrap uppercase ${selectedCategory === cat.id
                                 ? 'bg-slate-900 text-white border-slate-900'
                                 : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                                 }`}
                         >
                             <span
-                                className="w-2 h-2 rounded-full"
+                                className="w-1.5 h-1.5 rounded-full"
                                 style={{ backgroundColor: cat.color }}
                             />
                             {cat.label}
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                            <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
                                 {categoryCounts[cat.id]}
                             </span>
                         </button>
@@ -211,14 +205,28 @@ const MobileView: React.FC<MobileViewProps> = ({
                 </div>
             </div>
 
-            {/* 3-Card Stacked Display */}
+            {/* Scroll Down Indicator */}
+            {visibleNames.length > 0 && (
+                <div className="flex justify-center pb-2 animate-bounce">
+                    <div className="text-slate-400 text-xs font-bold flex flex-col items-center gap-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                        <span className="uppercase tracking-wider">Role para ver</span>
+                    </div>
+                </div>
+            )}
+
+            {/* 4-Card Stacked Display */}
             {visibleNames.length > 0 ? (
                 <>
-                    <div className="px-4 space-y-4">
-                        {visibleNames.map((name) => (
+                    {/* Scroll anchor for pagination */}
+                    <div id="mobile-cards-top" className="scroll-mt-20" />
+                    <div className="px-4 space-y-3">
+                        {visibleNames.map((name, index) => (
                             <div
                                 key={name.id}
-                                className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-sm hover:shadow-md transition-all"
+                                className={`bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-sm hover:shadow-md transition-all ${index === 0 ? 'first-card' : ''}`}
                             >
                                 {/* Card Header */}
                                 <div className="flex items-start justify-between mb-3">
@@ -301,7 +309,16 @@ const MobileView: React.FC<MobileViewProps> = ({
                     {/* Pagination */}
                     <div className="flex items-center justify-between px-4 py-4">
                         <button
-                            onClick={() => onPageChange(currentPage - 1)}
+                            onClick={() => {
+                                onPageChange(currentPage - 1);
+                                // Scroll to top of cards
+                                setTimeout(() => {
+                                    document.getElementById('mobile-cards-top')?.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start'
+                                    });
+                                }, 100);
+                            }}
                             disabled={currentPage === 1}
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${currentPage === 1
                                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
@@ -316,7 +333,16 @@ const MobileView: React.FC<MobileViewProps> = ({
                         </span>
 
                         <button
-                            onClick={() => onPageChange(currentPage + 1)}
+                            onClick={() => {
+                                onPageChange(currentPage + 1);
+                                // Scroll to top of cards
+                                setTimeout(() => {
+                                    document.getElementById('mobile-cards-top')?.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start'
+                                    });
+                                }, 100);
+                            }}
                             disabled={currentPage === totalPages}
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${currentPage === totalPages
                                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
