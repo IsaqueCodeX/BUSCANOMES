@@ -49,18 +49,35 @@ const MobileView: React.FC<MobileViewProps> = ({
         }
     };
 
+    const [isSearching, setIsSearching] = React.useState(false);
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            // Fechar teclado
+            searchInputRef.current?.blur();
+
+            // Efeito visual de pesquisa
+            setIsSearching(true);
+            setTimeout(() => setIsSearching(false), 600);
+        }
+    };
+
     return (
         <div className="lg:hidden space-y-6 pb-24">
             {/* Search Bar - Simple and Clean */}
             <div className="px-4">
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <div className={`relative transition-all duration-300 ${isSearching ? 'scale-[0.98]' : 'scale-100'}`}>
+                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-all duration-300 ${isSearching ? 'text-orange-500 scale-110' : 'text-slate-400'}`} />
                     <input
+                        ref={searchInputRef}
                         type="text"
                         placeholder="Buscar nome..."
-                        className="w-full bg-white border-2 border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-slate-900 placeholder-slate-400 text-base font-medium focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition-all"
+                        className={`w-full bg-white border-2 rounded-2xl py-3.5 pl-12 pr-4 text-slate-900 placeholder-slate-400 text-base font-medium focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 transition-all duration-300 ${isSearching ? 'border-orange-400 ring-2 ring-orange-100' : 'border-slate-200'}`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={handleSearchKeyDown}
+                        enterKeyHint="search"
                     />
                     {isLoadingAI && (
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
