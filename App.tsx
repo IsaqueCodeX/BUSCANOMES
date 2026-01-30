@@ -9,6 +9,7 @@ import NameDetailsModal from './components/NameDetailsModal';
 import AiWizard from './components/AiWizard';
 import MobileNavbar from './components/MobileNavbar';
 import SEOHead from './components/SEOHead';
+import SwipeableNameCards from './components/SwipeableNameCards';
 import { getGeminiInsights } from './services/geminiService';
 import { Search, Sparkles, AlertCircle, Heart } from 'lucide-react';
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const [selectedName, setSelectedName] = useState<BabyName | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -76,6 +78,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
+    setCurrentCardIndex(0);
     // Only scroll to top if we are not initial load to avoid jarring jumps
     /* window.scrollTo({ top: 0, behavior: 'smooth' }); */
   }, [searchTerm, selectedCategory, selectedGender, selectedLetter, view]);
@@ -307,35 +310,35 @@ const App: React.FC = () => {
 
             {/* FILTROS */}
             {view === 'browse' && (
-              <div className="sticky top-[73px] z-50 py-4 mb-8 -mx-4 px-4 md:-mx-6 md:px-6 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/50">
+              <div className="sticky top-[73px] z-50 py-2 lg:py-4 mb-4 lg:mb-8 -mx-4 px-4 md:-mx-6 md:px-6 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200/50">
                 <div className="max-w-7xl mx-auto">
                   {/* Gender Filters - Always Visible */}
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-2 mb-2 lg:mb-4">
                     <button
                       onClick={() => { setSelectedGender(null); setSelectedCategory(null); }}
-                      className={`px-5 py-2.5 rounded-xl text-[11px] font-bold border transition-all uppercase tracking-wider whitespace-nowrap ${!selectedGender && !selectedCategory ? 'bg-dark-gradient text-white border-black' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'}`}
+                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl text-[10px] lg:text-[11px] font-bold border transition-all uppercase tracking-wider whitespace-nowrap ${!selectedGender && !selectedCategory ? 'bg-dark-gradient text-white border-black' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'}`}
                     >
                       Todos
                     </button>
 
                     <button
                       onClick={() => setSelectedGender('M')}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'M' ? 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/20' : 'bg-white border-slate-200 hover:border-blue-300'}`}
+                      className={`flex items-center gap-1.5 lg:gap-2 px-2 lg:px-4 py-2 lg:py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'M' ? 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/20' : 'bg-white border-slate-200 hover:border-blue-300'}`}
                     >
-                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
+                      <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full overflow-hidden flex-shrink-0 bg-blue-100">
                         <img src="/assets/boy.png" alt="Menino" className="w-full h-full object-cover" />
                       </div>
-                      <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'M' ? 'text-blue-600' : 'text-slate-500'}`}>Menino</span>
+                      <span className={`text-[10px] lg:text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'M' ? 'text-blue-600' : 'text-slate-500'}`}>Menino</span>
                     </button>
 
                     <button
                       onClick={() => setSelectedGender('F')}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'F' ? 'bg-rose-50 border-rose-500 shadow-lg shadow-rose-500/20' : 'bg-white border-slate-200 hover:border-rose-300'}`}
+                      className={`flex items-center gap-1.5 lg:gap-2 px-2 lg:px-4 py-2 lg:py-2.5 rounded-xl border-2 transition-all ${selectedGender === 'F' ? 'bg-rose-50 border-rose-500 shadow-lg shadow-rose-500/20' : 'bg-white border-slate-200 hover:border-rose-300'}`}
                     >
-                      <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
+                      <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full overflow-hidden flex-shrink-0 bg-rose-100">
                         <img src="/assets/girl.png" alt="Menina" className="w-full h-full object-cover" />
                       </div>
-                      <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'F' ? 'text-rose-600' : 'text-slate-500'}`}>Menina</span>
+                      <span className={`text-[10px] lg:text-[11px] font-bold uppercase tracking-wider ${selectedGender === 'F' ? 'text-rose-600' : 'text-slate-500'}`}>Menina</span>
                     </button>
                   </div>
 
@@ -348,16 +351,16 @@ const App: React.FC = () => {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     </button>
 
-                    <div id="cat-scroll" className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 scroll-smooth w-full">
+                    <div id="cat-scroll" className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 lg:pb-2 scroll-smooth w-full">
                       {CATEGORIES.map(cat => (
                         <button
                           key={cat.id}
                           onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                          className={`flex items-center gap-2.5 px-5 py-3 rounded-full md:rounded-2xl text-[11px] font-bold border-2 transition-all whitespace-nowrap uppercase tracking-wider
+                          className={`flex items-center gap-2 lg:gap-2.5 px-3 lg:px-5 py-2 lg:py-3 rounded-full md:rounded-2xl text-[10px] lg:text-[11px] font-bold border-2 transition-all whitespace-nowrap uppercase tracking-wider
                             ${selectedCategory === cat.id ? 'bg-dark-gradient text-white border-white/20 shadow-xl scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
                         >
                           <span
-                            className="w-3 h-3 rounded-full shadow-sm flex-shrink-0"
+                            className="w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full shadow-sm flex-shrink-0"
                             style={{ backgroundColor: cat.color }}
                           />
                           {cat.label}
@@ -401,7 +404,20 @@ const App: React.FC = () => {
                   </div>
                 ) : filteredNames.length > 0 ? (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Mobile: Swipeable Cards */}
+                    <div className="lg:hidden">
+                      <SwipeableNameCards
+                        names={visibleNames}
+                        currentIndex={currentCardIndex}
+                        onIndexChange={setCurrentCardIndex}
+                        onNameSelect={setSelectedName}
+                        favorites={favorites}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    </div>
+
+                    {/* Desktop: Grid */}
+                    <div className="hidden lg:grid grid-cols-2 gap-6">
                       {visibleNames.map(n => (
                         <div key={n.id} className="flex justify-center">
                           <NameCard
@@ -415,7 +431,7 @@ const App: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                      <div className="flex justify-center items-center gap-4 pt-12 pb-8">
+                      <div className="hidden lg:flex justify-center items-center gap-4 pt-12 pb-8">
                         <button
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
