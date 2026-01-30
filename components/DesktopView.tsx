@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BabyName } from '../types';
 import { Sparkles } from 'lucide-react';
 import NameCard from './NameCard';
+import { getCountByLetter } from '../utils/nameUtils';
 
 interface DesktopViewProps {
     names: BabyName[];
@@ -14,6 +15,9 @@ interface DesktopViewProps {
     nameOfTheDay: BabyName | null;
     isLoadingData: boolean;
     totalCount: number;
+    allFilteredNames: BabyName[];
+    selectedLetter: string | null;
+    setSelectedLetter: (letter: string | null) => void;
 }
 
 const DesktopView: React.FC<DesktopViewProps> = ({
@@ -26,24 +30,64 @@ const DesktopView: React.FC<DesktopViewProps> = ({
     onPageChange,
     nameOfTheDay,
     isLoadingData,
-    totalCount
+    totalCount,
+    allFilteredNames,
+    selectedLetter,
+    setSelectedLetter
 }) => {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+    // Calcular contagens para letras
+    const letterCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        alphabet.forEach(letter => {
+            counts[letter] = getCountByLetter(allFilteredNames, letter);
+        });
+        return counts;
+    }, [allFilteredNames, alphabet]);
+
     return (
         <div className="hidden lg:block">
+            {/* Alphabet Filter - Desktop */}
+            <div className="max-w-7xl mx-auto mb-6">
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    {alphabet.map((letter) => (
+                        <button
+                            key={letter}
+                            onClick={() => setSelectedLetter(letter)}
+                            className={`flex-shrink-0 w-10 h-10 rounded-lg text-xs font-bold transition-all ${selectedLetter === letter
+                                ? 'bg-slate-900 text-white border-2 border-slate-900 scale-110 shadow-lg'
+                                : letterCounts[letter] > 0
+                                    ? 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:shadow-md'
+                                    : 'bg-slate-50 text-slate-300 border-2 border-slate-100 cursor-not-allowed opacity-50'
+                                }`}
+                            disabled={letterCounts[letter] === 0}
+                        >
+                            {letter}
+                            {letterCounts[letter] > 0 && (
+                                <div className={`text-[8px] font-bold ${selectedLetter === letter ? 'text-orange-300' : 'text-slate-400'}`}>
+                                    {letterCounts[letter]}
+                                </div>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             {/* CONTENT GRID - Aligned with categories bar */}
             <div className="grid grid-cols-[1fr_280px] gap-12 max-w-7xl mx-auto mt-12">
                 <div className="space-y-8">
 
                     {isLoadingData ? (
                         <div className="grid grid-cols-3 gap-6">
-                            {[1, 2, 3].map(i => (
+                            {[1, 2, 3, 4, 5, 6].map(i => (
                                 <div key={i} className="h-64 bg-white rounded-[2rem] animate-pulse border border-slate-200"></div>
                             ))}
                         </div>
                     ) : names.length > 0 ? (
                         <>
-                            {/* Desktop: 3-card horizontal grid - all same size */}
-                            <div className="grid grid-cols-3 gap-12 items-center">
+                            {/* Desktop: 6-card grid (2 rows × 3 columns) - all same size */}
+                            <div className="grid grid-cols-3 gap-6 items-start">
                                 {names.map((n, idx) => (
                                     <div
                                         key={n.id}

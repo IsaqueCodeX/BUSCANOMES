@@ -160,7 +160,7 @@ const MobileView: React.FC<MobileViewProps> = ({
                     {alphabet.map((letter) => (
                         <button
                             key={letter}
-                            onClick={() => setSelectedLetter(selectedLetter === letter ? null : letter)}
+                            onClick={() => setSelectedLetter(letter)}
                             className={`flex-shrink-0 w-9 h-9 rounded-lg text-xs font-bold transition-all ${selectedLetter === letter
                                 ? 'bg-slate-900 text-white border-2 border-slate-900 scale-110'
                                 : letterCounts[letter] > 0

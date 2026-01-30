@@ -14,7 +14,7 @@ import DesktopView from './components/DesktopView';
 import { getGeminiInsights } from './services/geminiService';
 import { Search, Sparkles, Heart } from 'lucide-react';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 const App: React.FC = () => {
   const [names, setNames] = useState<BabyName[]>([]);
@@ -416,6 +416,9 @@ const App: React.FC = () => {
               nameOfTheDay={nameOfTheDay}
               isLoadingData={isLoadingData}
               totalCount={names.length}
+              allFilteredNames={filteredNames}
+              selectedLetter={selectedLetter}
+              setSelectedLetter={setSelectedLetter}
             />
           </>
         )}
